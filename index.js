@@ -24,36 +24,8 @@ mongoose
   .then(() => console.log("MongoDB connected successfully"))
   .catch((err) => console.error("MongoDB Connection Failed:", err));
 
-app.post("/createChallenge", (req, res) => {
-  try {
-    const {
-      createdBy,
-      title,
-      description,
-      type,
-      target,
-      startDate,
-      endDate,
-      scope,
-      participants,
-    } = req.body;
-    const newChallenge = new challenge_schema({
-      createdBy: createdBy,
-      title: title,
-      description: description,
-      type: type,
-      target: target,
-      startDate: startDate,
-      endDate: endDate,
-      scope: scope,
-      participants: participants,
-    });
-    newChallenge.save();
-    res.status(201).json(newChallenge);
-  } catch (err) {
-    console.log("Error", err);
-    res.status(400);
-  }
+app.get("/", (req, res) => {
+  res.send(`<h1>Welcome to the Backend for Challenge App</h1>`)
 });
 
 app.post("/signup", async (req, res) => {
@@ -93,30 +65,58 @@ app.post("/login", async (req, res) => {
       // const isValidPass = isExistingUser.password == password;
       // console.log(isValidPass);
       if (isValidPass) {
-        res
-          .status(200)
-          .json({
-            message: "Login is Successful",
-            isLoggedIn: true,
-            isExistingUser,
-          });
+        res.status(200).json({
+          message: "Login is Successful",
+          isLoggedIn: true,
+          isExistingUser,
+        });
       } else {
         res
           .status(400)
           .json({ message: "Incorrect Password", isLoggedIn: false });
       }
     } else {
-      res
-        .status(200)
-        .json({
-          message: "User not found, Please Signin first",
-          isLoggedIn: false,
-        });
+      res.status(400).json({
+        message: "User not found, Please Signin first",
+        isLoggedIn: false,
+      });
     }
   } catch (err) {
     res
       .status(400)
       .json({ message: "Error occurred in Login", err, isLoggedIn: false });
+  }
+});
+
+app.post("/createChallenge", (req, res) => {
+  try {
+    const {
+      createdBy,
+      title,
+      description,
+      type,
+      target,
+      startDate,
+      endDate,
+      scope,
+      participants,
+    } = req.body;
+    const newChallenge = new challenge_schema({
+      createdBy: createdBy,
+      title: title,
+      description: description,
+      type: type,
+      target: target,
+      startDate: startDate,
+      endDate: endDate,
+      scope: scope,
+      participants: participants,
+    });
+    newChallenge.save();
+    res.status(201).json(newChallenge);
+  } catch (err) {
+    console.log("Error", err);
+    res.status(400);
   }
 });
 
@@ -176,7 +176,7 @@ app.put("/user/update-progress", async (req, res) => {
     // Check if completed
     if (challengeProgress.progress >= challenge.target) {
       challengeProgress.progress = challenge.target; // Ensure it doesn't exceed target
-      challengeProgress.completed = true;
+      challengeProgress.status = "Completed";
     }
 
     await user.save();
@@ -186,16 +186,22 @@ app.put("/user/update-progress", async (req, res) => {
   }
 });
 
+app.delete("/user/delete-challenge", async (req, res) => {
+
+});
+
+// Get all Users and Challenges
 app.get("/get-users", async (req, res) => {
   const allUsers = await user_schema.find();
-  res.status(200).json({message : "All Users Details are Fetched", allUsers});
+  res.status(200).json({ message: "All Users Details are Fetched", allUsers });
 });
 
 app.get("/get-challenges", async (req, res) => {
   const allChallenges = await challenge_schema.find();
-  res.status(200).json({message : "All Challenges are Fetched", allChallenges});
-  
-})
+  res
+    .status(200)
+    .json({ message: "All Challenges are Fetched", allChallenges });
+});
 
 app.listen(PORT, () => {
   console.log(`Server running on ${PORT}`);
